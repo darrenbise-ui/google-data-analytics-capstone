@@ -1,23 +1,33 @@
 """
-Stromer 2019 E-Bike: Braking Analysis Table
-Calculates stopping times across various speeds and conditions.
+Stromer 2019 E-Bike: Multi-Variable Commute Analysis
+Comparing Flat (Alameda) vs. Hilly (SF) performance.
 """
 
-def calculate_stop_time(speed_mph, surface_condition='dry'):
-    friction = 0.7 if surface_condition == 'dry' else 0.4
+def analyze_commute(speed_mph, terrain='flat'):
+    # --- Braking Physics ---
+    friction = 0.7  # Dry road
     speed_mps = speed_mph * 0.44704
-    gravity = 9.81 
-    return round(speed_mps / (friction * gravity), 2)
+    stop_time = round(speed_mps / (friction * 9.81), 2)
+    
+    # --- Battery Physics (Est. Wh/mi) ---
+    # Base consumption + aerodynamic drag increase
+    base_wh_mi = 12 + (0.03 * (speed_mph**2))
+    
+    # Terrain Multiplier
+    multiplier = 1.0 if terrain == 'flat' else 2.5
+    final_wh_mi = round(base_wh_mi * multiplier, 1)
+    
+    return stop_time, final_wh_mi
 
-# Speeds to analyze (MPH)
-speeds = [10, 15, 20, 25, 28]
+speeds = [15, 20, 28]
 
-print(f"{'Speed (MPH)':<12} | {'Dry Stop (s)':<12} | {'Wet Stop (s)':<12}")
-print("-" * 42)
+print(f"{'Speed (MPH)':<12} | {'Stop Time (s)':<15} | {'Wh/mi (Flat)':<15} | {'Wh/mi (Hilly)':<15}")
+print("-" * 65)
 
 for s in speeds:
-    dry_time = calculate_stop_time(s, 'dry')
-    wet_time = calculate_stop_time(s, 'wet')
-    print(f"{s:<12} | {dry_time:<12} | {wet_time:<12}")
+    stop_t, wh_flat = analyze_commute(s, 'flat')
+    _, wh_hill = analyze_commute(s, 'hilly')
+    print(f"{s:<12} | {stop_t:<15} | {wh_flat:<15} | {wh_hill:<15}")
 
-# Empty line for Pylint compliance
+# Note: Your Stromer Battery is approx 983Wh. 
+# Total Range = 983 / Wh_mi
